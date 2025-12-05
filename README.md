@@ -8,10 +8,6 @@ Perfect for:
 - Testing with truncated JSON, CSV, PGN, etc.
 - Avoiding "message too long" errors
 
-Live demo → https://yourusername.github.io/text-slice
-
-![Demo](screenshot.png)
-
 ## Features
 
 - Supports files up to **50 MB**
@@ -47,5 +43,3 @@ No backend • No cookies • No analytics
 ## License
 
 [MIT License](LICENSE) — free to use, modify, and share ❤️
-
-Made with help from Grok (xAI) — proud to be AI-assisted open source!
