@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text File Percentage Copier</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b98d1;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --focus-outline: 2px solid #4a6fa5;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .percentage-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        input[type="range"]:focus {
+            outline: var(--focus-outline);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        input[type="range"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="number"]:focus {
+            outline: var(--focus-outline);
+            border-color: var(--primary-color);
+        }
+
+        input[type="number"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        select:focus {
+            outline: var(--focus-outline);
+            border-color: var(--primary-color);
+        }
+
+        select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .file-input-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .file-input-button:active {
+            transform: scale(0.98);
+        }
+
+        .file-input-button:focus-within {
+            outline: var(--focus-outline);
+            outline-offset: 2px;
+        }
+
+        #fileInput {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+            word-break: break-all;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .clear-file-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+
+        .clear-file-btn:hover {
+            background-color: #c82333;
+        }
+
+        .clear-file-btn:focus {
+            outline: var(--focus-outline);
+        }
+
+        .status-container {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            background-color: #f8f8f8;
+            min-height: 50px;
+        }
+
+        #status {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        #error {
+            color: var(--error-color);
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        #warning {
+            color: #856404;
+            font-weight: 500;
+            margin-top: 8px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-radius: 4px;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        #fileInfo {
+            margin-top: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .preview-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 16px;
+            transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+            font-weight: 500;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--secondary-color);
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button:focus {
+            outline: var(--focus-outline);
+            outline-offset: 2px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .encoding-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .encoding-group label {
+            margin: 0;
+            font-weight: normal;
+            font-size: 14px;
+        }
+
+        .encoding-group select {
+            width: auto;
+            padding: 6px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+
+            .percentage-control {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            input[type="number"] {
+                width: 100%;
+            }
+
+            .file-name {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .clear-file-btn {
+                align-self: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📄 Text File Percentage Copier</h2>
+        
+        <div class="input-group">
+            <label for="percentage">Percentage to copy:</label>
+            <div class="percentage-control">
+                <input type="range" id="percentageSlider" min="1" max="100" value="100" aria-label="Percentage slider" disabled>
+                <input type="number" id="percentage" min="1" max="100" value="100" aria-label="Percentage value" disabled>
+                <span>%</span>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="fileInput">Select text file:</label>
+            <div class="file-input-wrapper">
+                <button class="file-input-button" type="button">Choose File</button>
+                <input type="file" id="fileInput" accept=".txt,.pgn,.csv,.log,.md,.json,.html,.css,.js,.xml,.yaml,.yml" aria-label="File input">
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <div class="encoding-group">
+                <label for="encoding">Encoding:</label>
+                <select id="encoding" disabled>
+                    <option value="UTF-8">UTF-8</option>
+                    <option value="ISO-8859-1">ISO-8859-1 (Latin-1)</option>
+                    <option value="windows-1252">Windows-1252</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="selectionMode">Selection mode:</label>
+            <select id="selectionMode" disabled>
+                <option value="start">From start</option>
+                <option value="end">From end</option>
+                <option value="middle">From middle</option>
+            </select>
+        </div>
+        
+        <div class="preview-container" id="previewContainer" role="region" aria-label="File preview"></div>
+        
+        <div class="status-container" role="status" aria-live="polite">
+            <div id="status"></div>
+            <div id="warning"></div>
+            <div id="error"></div>
+            <div id="fileInfo"></div>
+        </div>
+        
+        <div class="actions">
+            <button id="copyBtn" disabled type="button" aria-label="Copy to clipboard">📋 Copy to Clipboard</button>
+            <button id="downloadBtn" disabled type="button" aria-label="Download portion">💾 Download Portion</button>
+        </div>
+    </div>
+
+    <script>
+        const percentageSlider = document.getElementById('percentageSlider');
+        const percentageInput = document.getElementById('percentage');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDiv = document.getElementById('fileName');
+        const encodingSelect = document.getElementById('encoding');
+        const selectionMode = document.getElementById('selectionMode');
+        const statusDiv = document.getElementById('status');
+        const warningDiv = document.getElementById('warning');
+        const errorDiv = document.getElementById('error');
+        const fileInfoDiv = document.getElementById('fileInfo');
+        const previewContainer = document.getElementById('previewContainer');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        let fileContent = '';
+        let processedContent = '';
+        let selectedFile = null;
+        let debounceTimer = null;
+        let statusClearTimer = null;
+
+        // Constants
+        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+        const LARGE_FILE_WARNING = 10 * 1024 * 1024; // 10MB
+        const ALLOWED_TEXT_EXTENSIONS = [
+            'txt', 'pgn', 'csv', 'log', 'md', 'json', 
+            'html', 'css', 'js', 'xml', 'yaml', 'yml'
+        ];
+
+        // Debounce function for performance optimization
+        function debounce(func, delay = 300) {
+            return function(...args) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        // Safe substring that respects Unicode grapheme clusters
+        function safeSubstring(str, start, end) {
+            const chars = [...str];
+            const safeEnd = end !== undefined ? end : chars.length;
+            return chars.slice(start, safeEnd).join('');
+        }
+
+        // Strip BOM if present
+        function stripBOM(str) {
+            if (str.charCodeAt(0) === 0xFEFF || str.startsWith('\uFEFF')) {
+                return str.slice(1);
+            }
+            return str;
+        }
+
+        // Validate file type
+        function isValidTextFile(file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            const isValidExtension = ALLOWED_TEXT_EXTENSIONS.includes(extension);
+            
+            // Also check MIME type if available
+            if (file.type && !file.type.startsWith('text/') && 
+                !['application/json', 'application/xml'].includes(file.type)) {
+                return false;
+            }
+            
+            return isValidExtension;
+        }
+
+        // Format file size for display
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Sanitize filename for download
+        function sanitizeFilename(filename) {
+            return filename.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+        }
+
+        // Clear status message after delay
+        function clearStatusAfterDelay(message, delay = 3000) {
+            clearTimeout(statusClearTimer);
+            statusClearTimer = setTimeout(() => {
+                if (statusDiv.textContent === message) {
+                    statusDiv.textContent = '';
+                }
+            }, delay);
+        }
+
+        // Sync percentage controls with debouncing
+        percentageSlider.addEventListener('input', debounce(() => {
+            percentageInput.value = percentageSlider.value;
+            if (selectedFile) processFile();
+        }, 100));
+        
+        percentageInput.addEventListener('input', debounce(() => {
+            let value = parseInt(percentageInput.value, 10);
+            if (isNaN(value)) value = 100;
+            value = Math.max(1, Math.min(100, value));
+            percentageInput.value = value;
+            percentageSlider.value = value;
+            if (selectedFile) processFile();
+        }, 300));
+        
+        selectionMode.addEventListener('change', () => {
+            if (selectedFile) processFile();
+        });
+
+        encodingSelect.addEventListener('change', () => {
+            if (selectedFile) processFile();
+        });
+
+        fileInput.addEventListener('change', async (event) => {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                // Validate file
+                if (!isValidTextFile(selectedFile)) {
+                    errorDiv.textContent = '⚠️ Invalid file type. Please select a valid text file.';
+                    resetState(true);
+                    return;
+                }
+
+                if (selectedFile.size > MAX_FILE_SIZE) {
+                    errorDiv.textContent = `⚠️ File too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`;
+                    resetState(true);
+                    return;
+                }
+
+                // Create clear button
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'clear-file-btn';
+                clearBtn.textContent = '✕ Clear';
+                clearBtn.type = 'button';
+                clearBtn.setAttribute('aria-label', 'Clear selected file');
+                clearBtn.onclick = () => resetState();
+
+                const fileNameText = document.createElement('span');
+                fileNameText.textContent = `Selected: ${selectedFile.name} (${formatFileSize(selectedFile.size)})`;
+
+                fileNameDiv.innerHTML = '';
+                fileNameDiv.appendChild(fileNameText);
+                fileNameDiv.appendChild(clearBtn);
+                
+                // Warn for large files
+                if (selectedFile.size > LARGE_FILE_WARNING) {
+                    warningDiv.textContent = `⚠️ Large file detected. Processing may take a moment.`;
+                } else {
+                    warningDiv.textContent = '';
+                }
+
+                // Enable controls
+                percentageSlider.disabled = false;
+                percentageInput.disabled = false;
+                encodingSelect.disabled = false;
+                selectionMode.disabled = false;
+
+                await processFile();
+            } else {
+                resetState();
+            }
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            if (!processedContent) return;
+            
+            copyBtn.disabled = true;
+            statusDiv.innerHTML = '<span class="loading"></span> Copying to clipboard...';
+            errorDiv.textContent = '';
+            
+            try {
+                await navigator.clipboard.writeText(processedContent);
+                const successMsg = '✅ Successfully copied to clipboard!';
+                statusDiv.textContent = successMsg;
+                clearStatusAfterDelay(successMsg);
+            } catch (err) {
+                errorDiv.textContent = '❌ Failed to copy: ' + err.message;
+                statusDiv.textContent = '';
+            } finally {
+                copyBtn.disabled = false;
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!processedContent || !selectedFile) return;
+            
+            try {
+                const percentage = parseInt(percentageInput.value, 10);
+                const fileName = selectedFile.name;
+                const lastDotIndex = fileName.lastIndexOf('.');
+                const extension = lastDotIndex !== -1 ? fileName.slice(lastDotIndex + 1) : 'txt';
+                const baseName = lastDotIndex !== -1 ? fileName.slice(0, lastDotIndex) : fileName;
+                const safeBaseName = sanitizeFilename(baseName);
+                const newFileName = `${safeBaseName}_${percentage}percent.${extension}`;
+                
+                const blob = new Blob([processedContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = newFileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                const successMsg = `✅ File "${newFileName}" downloaded!`;
+                statusDiv.textContent = successMsg;
+                clearStatusAfterDelay(successMsg);
+            } catch (err) {
+                errorDiv.textContent = '❌ Download failed: ' + err.message;
+            }
+        });
+
+        function resetState(keepFile = false) {
+            if (!keepFile) {
+                fileNameDiv.innerHTML = '';
+                selectedFile = null;
+                fileInput.value = '';
+                percentageSlider.disabled = true;
+                percentageInput.disabled = true;
+                encodingSelect.disabled = true;
+                selectionMode.disabled = true;
+            }
+            
+            statusDiv.textContent = '';
+            warningDiv.textContent = '';
+            errorDiv.textContent = '';
+            fileInfoDiv.textContent = '';
+            previewContainer.textContent = '';
+            previewContainer.style.display = 'none';
+            copyBtn.disabled = true;
+            downloadBtn.disabled = true;
+            fileContent = '';
+            processedContent = '';
+            
+            // Clear timers
+            clearTimeout(debounceTimer);
+            clearTimeout(statusClearTimer);
+            debounceTimer = null;
+            statusClearTimer = null;
+        }
+
+        async function processFile() {
+            if (!selectedFile) return;
+            
+            const percentage = parseInt(percentageInput.value, 10);
+            if (isNaN(percentage) || percentage < 1 || percentage > 100) {
+                errorDiv.textContent = '⚠️ Please enter a valid percentage between 1 and 100.';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<span class="loading"></span> Processing file...';
+            errorDiv.textContent = '';
+            copyBtn.disabled = true;
+            downloadBtn.disabled = true;
+            
+            try {
+                const encoding = encodingSelect.value;
+                let rawContent = await readFileAsText(selectedFile, encoding);
+                
+                // Strip BOM if present
+                rawContent = stripBOM(rawContent);
+                fileContent = rawContent;
+                
+                const mode = selectionMode.value;
+                
+                // Calculate the portion of the file to keep using grapheme-safe method
+                const totalChars = [...fileContent];
+                const totalSize = totalChars.length;
+                const keepSize = Math.floor(totalSize * (percentage / 100));
+                
+                // Extract the portion based on selected mode
+                if (mode === 'start') {
+                    processedContent = safeSubstring(fileContent, 0, keepSize);
+                } else if (mode === 'end') {
+                    processedContent = safeSubstring(fileContent, totalSize - keepSize);
+                } else if (mode === 'middle') {
+                    const startPos = Math.floor((totalSize - keepSize) / 2);
+                    processedContent = safeSubstring(fileContent, startPos, startPos + keepSize);
+                }
+                
+                // Update UI
+                const lineCount = processedContent.split('\n').length;
+                const charCount = [...processedContent].length;
+                const originalLines = fileContent.split('\n').length;
+                const originalChars = [...fileContent].length;
+                
+                // Better word count using word boundary regex
+                const wordCount = processedContent.match(/\b\w+\b/g)?.length || 0;
+                const originalWords = fileContent.match(/\b\w+\b/g)?.length || 0;
+                
+                statusDiv.textContent = `✅ Processed ${percentage}% of the file.`;
+                fileInfoDiv.innerHTML = `
+                    <strong>Original file:</strong> ${originalLines.toLocaleString()} line${originalLines === 1 ? '' : 's'}, 
+                    ${originalWords.toLocaleString()} word${originalWords === 1 ? '' : 's'},
+                    ${originalChars.toLocaleString()} character${originalChars === 1 ? '' : 's'}<br>
+                    <strong>Selected portion:</strong> ${lineCount.toLocaleString()} line${lineCount === 1 ? '' : 's'}, 
+                    ${wordCount.toLocaleString()} word${wordCount === 1 ? '' : 's'},
+                    ${charCount.toLocaleString()} character${charCount === 1 ? '' : 's'} 
+                    <span style="color: var(--primary-color);">(${Math.round(charCount / originalChars * 100)}%)</span>
+                `;
+                
+                // Show preview
+                showPreview(processedContent);
+                
+                // Enable buttons
+                copyBtn.disabled = false;
+                downloadBtn.disabled = false;
+                
+            } catch (err) {
+                errorDiv.textContent = '❌ Error processing file: ' + err.message;
+                statusDiv.textContent = '';
+                copyBtn.disabled = true;
+                downloadBtn.disabled = true;
+            }
+        }
+
+        // Modern async file reading with proper encoding support
+        function readFileAsText(file, encoding = 'UTF-8') {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = () => {
+                    try {
+                        if (encoding === 'UTF-8') {
+                            // For UTF-8, we can use readAsText directly
+                            const textReader = new FileReader();
+                            textReader.onload = (e) => resolve(e.target.result);
+                            textReader.onerror = () => reject(new Error('Failed to read file as UTF-8.'));
+                            textReader.readAsText(file, 'UTF-8');
+                        } else {
+                            // For other encodings, use TextDecoder for reliability
+                            const decoder = new TextDecoder(encoding, { fatal: true });
+                            const text = decoder.decode(new Uint8Array(reader.result));
+                            resolve(text);
+                        }
+                    } catch (e) {
+                        reject(new Error(`Invalid encoding or corrupted file: ${e.message}`));
+                    }
+                };
+                
+                reader.onerror = () => reject(new Error('Failed to read file. Please ensure it is a valid text file.'));
+                
+                try {
+                    if (encoding === 'UTF-8') {
+                        // Let the inner reader handle it
+                        reader.onload();
+                    } else {
+                        reader.readAsArrayBuffer(file);
+                    }
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        function showPreview(content) {
+            if (!content) {
+                previewContainer.style.display = 'none';
+                return;
+            }
+            
+            // Limit preview length using safe substring
+            const maxPreviewLength = 1000;
+            const chars = [...content];
+            let previewText = content;
+            
+            if (chars.length > maxPreviewLength) {
+                const halfLength = Math.floor(maxPreviewLength / 2);
+                const firstPart = safeSubstring(content, 0, halfLength);
+                const lastPart = safeSubstring(content, chars.length - halfLength);
+                previewText = firstPart + '\n\n... [truncated for preview] ...\n\n' + lastPart;
+            }
+            
+            previewContainer.textContent = previewText;
+            previewContainer.style.display = 'block';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+                return;
+            }
+
+            // Ctrl/Cmd + C when copy button is enabled
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !copyBtn.disabled) {
+                const selection = window.getSelection();
+                if (!selection || selection.toString().length === 0) {
+                    e.preventDefault();
+                    copyBtn.click();
+                }
+            }
+            
+            // Ctrl/Cmd + S when download button is enabled
+            if ((e.ctrlKey || e.metaKey) && e.key === 's' && !downloadBtn.disabled) {
+                e.preventDefault();
+                downloadBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
