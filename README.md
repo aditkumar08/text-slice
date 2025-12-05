@@ -8,6 +8,8 @@ Perfect for:
 - Testing with truncated JSON, CSV, PGN, etc.
 - Avoiding "message too long" errors
 
+Live demo → https://aditkumar08.github.io/text-slice
+
 ## Features
 
 - Supports files up to **50 MB**
